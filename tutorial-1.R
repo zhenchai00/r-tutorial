@@ -201,3 +201,64 @@ grepl("X", str)
 str1 <- "Hello"
 str2 <- "World"
 paste(str1, str2) 
+
+
+10 > 9    # TRUE because 10 is greater than 9
+10 == 9   # FALSE because 10 is not equal to 9
+10 < 9    # FALSE because 10 is greater than 9 
+
+a <- 10
+b <- 9
+a > b 
+
+
+a <- 200
+b <- 33
+if (b > a) {
+    print ("b is greater than a")
+} else {
+    print("b is not greater than a")
+} 
+
+
+my_var <- 3
+my_var <<- 3
+3 -> my_var
+3 ->> my_var
+my_var # print my_var 
+
+
+i <- 1
+while (i < 6) {
+    print(i)
+    i <- i + 1
+}
+
+i <- 1
+while (i < 6) {
+    print(i)
+    i <- i + 1
+    if (i == 4) {
+        break
+    }
+} 
+
+i <- 0
+while (i < 6) {
+    i <- i + 1
+    if (i == 3) {
+        next
+    }
+    print(i)
+} 
+
+dice <- 1
+while (dice <= 6) {
+    if (dice < 6) {
+        print("No Yahtzee")
+    } else {
+        print("Yahtzee!")
+    }
+    dice <- dice + 1
+} 
+

@@ -172,6 +172,10 @@ dataFrame = data.frame(
     vec4 = c(13:16)
 )
 dataFrame
+# Access directly
+dataFrame[1,]
+dataFrame[2,]
+# Access by name
 dataFrame1 = dataFrame[c(1:4), c("vec1","vec2")]
 dataFrame1
 
@@ -212,8 +216,9 @@ dataFrame = data.frame(
     vec4 = c(13:16)
 )
 dataFrame
-newDataFrame = dataFrame[, -c(1)]
-newDataFrame
+columnsToDrop = c("vec1", "vec3")
+dataFrame = dataFrame[, !names(dataFrame) %in% columnsToDrop]
+dataFrame
 
 
 # Q20

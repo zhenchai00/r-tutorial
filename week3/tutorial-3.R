@@ -139,7 +139,7 @@ multiArray[3,3,1]
 
 
 # Q13
-multiArray = array(c(1:24), dim = c(3,3,3))
+multiArray = array(c(1:24), dim = c(3,4,2))
 multiArray
 
 

@@ -222,3 +222,34 @@ mostPopularProduct
 
 
 # Q7 Which are the two products that have customers purchased together often
+library(dplyr)
+
+# Group by InvoiceNo and summarize products in each invoice
+product_combinations <- data2 %>%
+    group_by(InvoiceNo) %>%
+    summarise(products = list(StockCode)) %>%
+    filter(length(products) > 1) %>%
+    .$products
+
+# Create a function to generate pairs of products from a list of products
+generate_pairs <- function(products) {
+    if(length(products) >= 2) {
+        sort(combn(products, 2, paste, collapse = "-"))
+    } else {
+        character(0) # return an empty character vector if there are less than 2 products
+    }
+}
+
+# Apply the function to product_combinations and count the occurrences of each pair
+pair_counts <- unlist(lapply(product_combinations, generate_pairs)) %>%
+    table()
+
+# Convert the table to a data frame and arrange by frequency
+pair_df <- as.data.frame(pair_counts, stringsAsFactors = FALSE)
+names(pair_df) <- c("ProductPair", "Frequency")
+pair_df <- pair_df %>%
+    arrange(desc(Frequency))
+
+# Extract the most frequent product pair
+most_frequent_pair <- pair_df[1, ]
+print(pair_df)

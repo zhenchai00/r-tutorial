@@ -90,17 +90,77 @@ ggplot(data = student.Data) +
     scale_x_discrete(labels = c("1" = "None", "2" = "25%", "3" = "50%", "4" = "75%", "5" = "Full"))
 
 # check how many student attend to the seminars / conference related to the department
-ggplot(data = student.Data) +
-    geom_bar(mapping = aes(x = as.factor(ATTEND_DEPT))) +
-    labs(title = "Distribution of Student Having Attendence to The Seminars/Conferences Related to the Department", x = "Attend", y = "Count") +
-    scale_x_discrete(labels = c("1" = "Yes", "2" = "No"))
+# Variation of student attend to seminars or conference related to the department
+bar.Data <- student.Data
+bar.Data$ATTEND_DEPT = as.factor(bar.Data$ATTEND_DEPT)
+head(bar.Data)
+ggplot(data = bar.Data) +
+    geom_bar(
+        mapping = aes(x = as.factor(ATTEND_DEPT), fill = ATTEND_DEPT)
+    ) +
+    geom_text(
+        aes(x = as.factor(ATTEND_DEPT), y = ..count.., label = ..count..),
+        stat = "count",
+        position = position_dodge(width = 0.9),
+        vjust = -0.5,
+        size = 3
+    ) +
+    labs(
+        title = "Variant of Student Having Attendence to The Seminars/Conferences Related to the Department",
+        x = "Attend",
+        y = "Count"
+    ) +
+    scale_x_discrete(
+        labels = c("1" = "Yes", "2" = "No"),
+        limits = c("1", "2")
+    ) +
+    scale_fill_manual(
+        values = c("1" = "green", "2" = "blue"),
+        breaks = c("1", "2"),
+        labels = c("Yes", "No")
+    )
 
 # check how many student having the Expected Cumulative GPA in graduation
 ggplot(data = student.Data) +
-    geom_bar(mapping = aes(x = as.factor(EXP_GPA))) +
-    labs(title = "Distribution of Student Expected Cumulative grade point average in the graduation", x = "Expected CGPA", y = "Count") +
+    geom_bar(
+        mapping = aes(x = as.factor(EXP_GPA),fill = as.factor(EXP_GPA)),
+        position = "dodge"
+    ) +
+    labs(
+        title = "Distribution of Student Expected Cumulative grade point average in the graduation",
+        x = "Expected CGPA",
+        y = "Count"
+    ) +
     scale_x_discrete(labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49", "5" = "Above 3.49"))
 
+
+# Variation of Student Expected Cumulative Grade Point Average 
+bar.Data <- student.Data
+bar.Data$EXP_GPA <- factor(bar.Data$EXP_GPA, levels = c("1", "2", "3", "4", "5"),
+                           labels = c("< 2.00", "2.00 - 2.49", "2.50 - 2.99", "3.00 - 3.49", "Above 3.49"))
+
+ggplot(data = bar.Data, aes(x = EXP_GPA, fill = EXP_GPA)) +
+    geom_bar() +
+    geom_text(
+        aes(y = ..count.., label = ..count..),
+        stat = "count",
+        position = position_dodge(width = 0.9),
+        vjust = -0.5,
+        size = 3
+    ) +
+    labs(
+        title = "Variation of Student Expected Cumulative Grade Point Average in Graduation",
+        x = "Expected CGPA",
+        y = "Count"
+    ) +
+    scale_fill_manual(
+        values = c("red", "orange", "yellow", "green", "blue"),
+        breaks = c("< 2.00", "2.00 - 2.49", "2.50 - 2.99", "3.00 - 3.49", "Above 3.49"),
+        labels = c("< 2.00", "2.00 - 2.49", "2.50 - 2.99", "3.00 - 3.49", "Above 3.49")
+    ) +
+    scale_x_discrete(
+        limits = c("< 2.00", "2.00 - 2.49", "2.50 - 2.99", "3.00 - 3.49", "Above 3.49")
+    )
 
 # Check related columns correlation
 library(corrplot)
@@ -137,6 +197,17 @@ polychor(exp.GPA.Value, scholarship.Value)
 polychor(exp.GPA.Value, attendDept.Value)
 
 
+# Check related columns correlation
+install.packages("polycor")
+library(polycor)
+
+# get the relevant data 
+exp.GPA.Value <- student.Data$EXP_GPA
+attendDept.Value <- student.Data$ATTEND_DEPT
+
+# check the correlation with Polychoric method
+polychor(exp.GPA.Value, attendDept.Value)
+
 # install.packages("psych")
 # library(psych)
 # polychoric(exp.GPA.Value, attendDept.Value)
@@ -168,26 +239,51 @@ print(data.Set)
 ggplot(data = data.Set, mapping = aes(x = EXP_GPA)) +
     geom_freqpoly(mapping = aes(colour = as.factor(ATTEND_DEPT)), binwidth = 0.5)
 
+
+# Covariation between EXP_GPA and ATTEND_DEPT
+# Check all the related columns for our hypothesis
+data.Set <- student.Data %>%
+    select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
+
+cor.BarData = data.Set
+cor.BarData$EXP_GPA = as.factor(cor.BarData$EXP_GPA)
+cor.BarData$ATTEND_DEPT = as.factor(cor.BarData$ATTEND_DEPT)
+
 # BarChart Plotting for Covariation between EXP_GPA and ATTEND_DEPT
-ggplot(data = data.Set, mapping = aes(x = as.factor(EXP_GPA))) +
-    geom_bar(mapping = aes(colour = as.factor(ATTEND_DEPT)), position = "dodge") +
+ggplot(data = cor.BarData, aes(x = EXP_GPA, fill = ATTEND_DEPT)) +
+    geom_bar(position = "dodge") +
+    geom_text(
+        aes(x = EXP_GPA, y = ..count.., label = ..count..),
+        stat = "count",
+        position = position_dodge(width = 0.9),
+        vjust = -0.5,
+        size = 3
+    ) +
     labs(
         title = "Covariation between Expected CGPA in Graduation and Attending Seminar/Conferences related to Department",
         x = "Expected CGPA",
         y = "Count"
     ) +
-    scale_x_discrete(labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49", "5" = "Above 3.49")) +
-    scale_color_discrete(name = "Attend Seminar/Conference", labels = c("1" = "Yes", "2" = "No"))
+    scale_x_discrete(
+        labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49")
+    ) +
+    scale_fill_discrete(
+        name = "Attend Seminar/Conference",
+        labels = c("1" = "Yes", "2" = "No")
+    )
+
+
 
 # Point Area Chart Plotting for Covariation between EXP_GPA and ATTEND_DEPT
-ggplot(data = data.Set, mapping = aes(x = as.factor(ATTEND_DEPT), y = as.factor(EXP_GPA))) +
-    geom_count(mapping = aes(x = as.factor(ATTEND_DEPT), y = as.factor(EXP_GPA))) +
+ggplot(data = cor.BarData, mapping = aes(x = ATTEND_DEPT, y = EXP_GPA)) +
+    geom_count(mapping = aes(x = ATTEND_DEPT, y = EXP_GPA)) +
     labs(
         title = "Covariation between Expected CGPA in Graduation and Attending Seminar/Conferences related to Department",
         x = "Attend Seminar/Conference",
         y = "Expected CGPA"
     ) +
-    scale_x_discrete(labels = c("1" = "Yes", "2" = "No")) +
+    scale_x_discrete(
+        labels = c("1" = "Yes", "2" = "No")) +
     scale_y_discrete(labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49", "5" = "Above 3.49")) +
     scale_fill_discrete(name = "Attend Seminar/Conference")
 
@@ -217,7 +313,6 @@ library(caret)
 library(rpart)
 library(rpart.plot)	
 library(AUC)
-
 install.packages("rattle")
 install.packages("rpart.plot")
 install.packages("RColorBrewer")
@@ -253,9 +348,6 @@ library(rpart.plot)
 library(RColorBrewer)
 dt.Set <- student.Data %>% 
     select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
-# dt.Set <- student.Data %>% 
-#     select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT, PREP_EXAM, PREP_STUDY)
-# dt.Set <- student.Data
 
 # Convert columns to factor with meaningful labels
 dt.Set$ATTEND_DEPT <- factor(
@@ -284,17 +376,6 @@ dt.Set$EXP_GPA <- factor(
     labels = c("<2.00", "2.00-2.49", "2.50-2.99", "3.00-3.49", "above 3.49")
 )
 
-# dt.Set$PREP_EXAM <- factor(
-#     dt.Set$EXP_GPA,
-#     levels = c(1, 2, 3),
-#     labels = c("Alone", "With Friends", "Not Applicable")
-# )
-# dt.Set$PREP_STUDY <- factor(
-#     dt.Set$EXP_GPA,
-#     levels = c(1, 2, 3),
-#     labels = c("Closet Date", "Regular", "Not Applicable")
-# )
-
 # Build the decision tree model
 model.Dtree <- rpart(
     EXP_GPA ~ .,
@@ -312,7 +393,6 @@ fancyRpartPlot(model.Dtree, caption = NULL)
 
 pb <- NULL
 pb <- predict(model.Dtree, dt.Set, type = "class")
-# pb <- predict(model.Dtree, newdata = dt.Set, type = "class")
 pb <- as.data.frame(pb)
 
 #lift chart
@@ -354,7 +434,6 @@ lr.Set$EXP_GPA <- factor(lr.Set$EXP_GPA, levels = c(1, 2, 3, 4), labels = c("<2.
 lr.Set$EXP_GPA_binary <- ifelse(lr.Set$EXP_GPA == "3.00-3.49", "3.00-3.49", "not 3.00-3.49")
 
 # Fit multinomial logistic regression model
-# model.LogReg <- multinom(EXP_GPA ~ LISTENS + NOTES + SCHOLARSHIP + ATTEND_DEPT, data = lr.Set)
 model.LogReg <- multinom(EXP_GPA_binary ~ LISTENS + NOTES + SCHOLARSHIP + ATTEND_DEPT, data = lr.Set)
 head(model.LogReg)
 
@@ -363,8 +442,7 @@ summary(model.LogReg)
 
 #lift chart
 pb <- NULL
-pb <- predict(model.LogReg, lr.Set, type = "probs")
-head(pb)
+pb <- predict(model.LogReg, data = lr.Set, type = "probs")
 
 pred.LogReg <- data.frame(
     target = lr.Set$EXP_GPA_binary,
@@ -379,6 +457,71 @@ lift.LogReg
 xyplot(lift.LogReg, main="Logistic Regression - Lift Chart", type=c("l","g"), lwd=2
        , scales=list(x=list(alternating=FALSE,tick.number = 10)
                      ,y=list(alternating=FALSE,tick.number = 10)))
+
+
+# Logistic Regression
+# Load libraries
+library(caret)
+library(MASS)
+library(AUC)
+
+# Load the data
+lr.Set <- student.Data %>% 
+    select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
+
+# Convert columns to factor with meaningful labels
+lr.Set$ATTEND_DEPT <- factor(
+    lr.Set$ATTEND_DEPT,
+    levels = c(1, 2),
+    labels = c("Yes", "No")
+)
+lr.Set$NOTES <- factor(
+    lr.Set$NOTES,
+    levels = c(1, 2, 3),
+    labels = c("Never", "Sometimes", "Always")
+)
+lr.Set$LISTENS <- factor(
+    lr.Set$LISTENS,
+    levels = c(1, 2, 3),
+    labels = c("Never", "Sometimes", "Always")
+)
+lr.Set$SCHOLARSHIP <- factor(
+    lr.Set$SCHOLARSHIP,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("None", "25%", "50%", "75%", "Full")
+)
+lr.Set$EXP_GPA <- factor(
+    lr.Set$EXP_GPA,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("<2.00", "2.00-2.49", "2.50-2.99", "3.00-3.49", "above 3.49")
+)
+# Convert EXP_GPA into a binary outcome: 1 vs. 0
+lr.Set$EXP_GPA_binary <- ifelse(lr.Set$EXP_GPA == "3.00-3.49", 1, 0)
+unique(lr.Set$EXP_GPA_binary)
+lr.Set$EXP_GPA
+
+# Fit logistic regression model
+model.LogReg <- glm(EXP_GPA_binary ~ LISTENS + NOTES + SCHOLARSHIP + ATTEND_DEPT, 
+                    family = binomial(link = "logit"), 
+                    data = lr.Set,
+                    control = glm.control(maxit = 1000))
+
+# Predict probabilities
+pred_probs <- predict(model.LogReg, newdata = lr.Set, type = "response")
+pred_probs
+
+# Create binary outcome based on probability threshold (for example, 0.5)
+predicted_class <- ifelse(pred_probs > 0.5, "3.00-3.49", "not 3.00-3.49")
+predicted_class
+
+# Create a confusion matrix
+confusion_matrix <- table(predicted_class, lr.Set$EXP_GPA_binary)
+print(confusion_matrix)
+
+# Compute ROC curve
+library(pROC)
+roc_curve <- roc(as.numeric(lr.Set$EXP_GPA_binary == 1), pred_probs)
+plot(roc_curve, main = "ROC Curve", col = "blue")
 
 
 

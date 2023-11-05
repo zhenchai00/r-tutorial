@@ -307,6 +307,70 @@ ggplot(data = cor.BarData, mapping = aes(x = ATTEND_DEPT, y = EXP_GPA)) +
 tbl <- table(student.Data$EXP_GPA, student.Data$ATTEND_DEPT)
 chisq.test(tbl)
 
+data.Set$EXP_GPA <- factor(data.Set$EXP_GPA, levels = c("1", "2", "3", "4", "5"),
+                           labels = c("< 2.00", "2.00 - 2.49", "2.50 - 2.99", "3.00 - 3.49", "Above 3.49"))
+
+# Reshape the data into long format
+data.long <- data.Set %>%
+    gather(key = "Variable", value = "Value", -EXP_GPA)
+
+# Plot multivariate grouped bar chart
+ggplot(data = data.long, aes(x = EXP_GPA, fill = Value)) +
+    geom_bar(position = "dodge") +
+    labs(
+        title = "Multivariate Grouped Bar Chart",
+        x = "Expected CGPA",
+        y = "Count"
+    ) +
+    scale_fill_manual(
+        values = c("red", "green", "blue", "orange"), # Define colors for different variable levels
+        breaks = c("1", "2", "Yes", "No"), # Specify unique levels from the gathered data
+        labels = c("< 2.00", "2.00 - 2.49", "Yes", "No") # Specify labels for the legend
+    ) +
+    theme_minimal()
+
+
+data.long <- data.Set %>%
+    gather(key = "Variable", value = "Value", -EXP_GPA)
+head(data.long)
+
+# Plot multivariate line chart
+ggplot(data = data.long, aes(x = EXP_GPA, y = Value, color = Variable, group = Variable)) +
+    geom_line() +
+    labs(
+        title = "Multivariate Line Chart",
+        x = "Expected CGPA",
+        y = "Value"
+    ) +
+    scale_color_manual(
+        values = c("LISTENS" = "red", "NOTES" = "green", "SCHOLARSHIP" = "blue", "ATTEND_DEPT" = "orange")
+    ) +
+    theme_minimal()
+
+ggplot(data = data.long, aes(x = EXP_GPA, fill = Variable)) +
+    geom_bar(position = "dodge") +
+    labs(
+        title = "Multivariate Bar Chart",
+        x = "Expected CGPA",
+        y = "Count"
+    ) +
+    scale_fill_manual(values = c("LISTENS" = "red", "NOTES" = "green", "SCHOLARSHIP" = "blue", "ATTEND_DEPT" = "orange")) +
+    theme_minimal()
+
+ggplot(data = data.long, aes(x = EXP_GPA, fill = Variable)) +
+    geom_bar() +
+    labs(
+        title = "Stacked Bar Chart",
+        x = "Expected CGPA",
+        y = "Count"
+    ) +
+    scale_fill_manual(values = c("LISTENS" = "red", "NOTES" = "green", "SCHOLARSHIP" = "blue", "ATTEND_DEPT" = "orange")) +
+    theme_minimal()
+mosaicplot(~ EXP_GPA + LISTENS + NOTES + SCHOLARSHIP + ATTEND_DEPT, data = data.Set, color = TRUE)
+
+
+
+
 
 # Decision Tree Test
 library(caret)

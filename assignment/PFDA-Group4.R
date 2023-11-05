@@ -213,3 +213,125 @@ polychor(exp.GPA.Value, attendDept.Value)
 # Chi Square Test
 tbl <- table(student.Data$EXP_GPA, student.Data$ATTEND_DEPT)
 chisq.test(tbl)
+
+
+# Decision Tree Test
+dt.Set <- student.Data %>% 
+    select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
+
+# Convert columns to factor with meaningful labels
+dt.Set$ATTEND_DEPT <- factor(
+    dt.Set$ATTEND_DEPT,
+    levels = c(1, 2),
+    labels = c("Yes", "No")
+)
+dt.Set$NOTES <- factor(
+    dt.Set$NOTES,
+    levels = c(1, 2, 3),
+    labels = c("Never", "Sometimes", "Always")
+)
+dt.Set$LISTENS <- factor(
+    dt.Set$LISTENS,
+    levels = c(1, 2, 3),
+    labels = c("Never", "Sometimes", "Always")
+)
+dt.Set$SCHOLARSHIP <- factor(
+    dt.Set$SCHOLARSHIP,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("None", "25%", "50%", "75%", "Full")
+)
+dt.Set$EXP_GPA <- factor(
+    dt.Set$EXP_GPA,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("<2.00", "2.00-2.49", "2.50-2.99", "3.00-3.49", "above 3.49")
+)
+
+# Build the decision tree model
+model.Dtree <- rpart(
+    EXP_GPA ~ .,
+    # EXP_GPA ~ ATTEND_DEPT,
+    data = dt.Set,
+    method = "class",
+    minsplit = 2,
+    minbucket = 1
+)
+
+# display tree plot
+model.Dtree
+prp(model.Dtree)
+fancyRpartPlot(model.Dtree, caption = NULL)
+
+pb <- NULL
+pb <- predict(model.Dtree, dt.Set, type = "class")
+pb <- as.data.frame(pb)
+
+#lift chart
+pred.Dtree <- data.frame(dt.Set$ATTEND_DEPT, pb$pb)
+colnames(pred.Dtree) <- c("target","score")
+pred.Dtree$target <- as.factor(pred.Dtree$target)
+lift.Dtree <- lift(target ~ score, data = pred.Dtree, cuts=10)
+lift.Dtree
+xyplot(lift.Dtree, main="Decision Tree - Lift Chart", type=c("l","g"), lwd=2
+       , scales=list(x=list(alternating=FALSE,tick.number = 10)
+                     ,y=list(alternating=FALSE,tick.number = 10)))
+
+
+
+# Logistic Regression
+# Load the data
+lr.Set <- student.Data %>% 
+    select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
+
+# Convert columns to factor with meaningful labels
+lr.Set$ATTEND_DEPT <- factor(
+    lr.Set$ATTEND_DEPT,
+    levels = c(1, 2),
+    labels = c("Yes", "No")
+)
+lr.Set$NOTES <- factor(
+    lr.Set$NOTES,
+    levels = c(1, 2, 3),
+    labels = c("Never", "Sometimes", "Always")
+)
+lr.Set$LISTENS <- factor(
+    lr.Set$LISTENS,
+    levels = c(1, 2, 3),
+    labels = c("Never", "Sometimes", "Always")
+)
+lr.Set$SCHOLARSHIP <- factor(
+    lr.Set$SCHOLARSHIP,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("None", "25%", "50%", "75%", "Full")
+)
+lr.Set$EXP_GPA <- factor(
+    lr.Set$EXP_GPA,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("<2.00", "2.00-2.49", "2.50-2.99", "3.00-3.49", "above 3.49")
+)
+# Convert EXP_GPA into a binary outcome: 1 vs. 0
+lr.Set$EXP_GPA_binary <- ifelse(lr.Set$EXP_GPA == "3.00-3.49", 1, 0)
+unique(lr.Set$EXP_GPA_binary)
+lr.Set$EXP_GPA
+
+# Fit logistic regression model
+model.LogReg <- glm(EXP_GPA_binary ~ LISTENS + NOTES + SCHOLARSHIP + ATTEND_DEPT, 
+                    family = binomial(link = "logit"), 
+                    data = lr.Set,
+                    control = glm.control(maxit = 1000))
+
+# Predict probabilities
+pred_probs <- predict(model.LogReg, newdata = lr.Set, type = "response")
+pred_probs
+
+# Create binary outcome based on probability threshold (for example, 0.5)
+predicted_class <- ifelse(pred_probs > 0.5, "3.00-3.49", "not 3.00-3.49")
+predicted_class
+
+# Create a confusion matrix
+confusion_matrix <- table(predicted_class, lr.Set$EXP_GPA_binary)
+print(confusion_matrix)
+
+# Compute ROC curve
+library(pROC)
+roc_curve <- roc(as.numeric(lr.Set$EXP_GPA_binary == 1), pred_probs)
+plot(roc_curve, main = "ROC Curve", col = "blue")

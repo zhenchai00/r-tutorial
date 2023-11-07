@@ -189,6 +189,22 @@ ggplot(data = cor.BarData, aes(x = EXP_GPA, fill = ATTEND_DEPT)) +
         labels = c("1" = "Yes", "2" = "No")
     )
 
+# Stacked Bar Chart Plotting for Covariation between EXP_GPA and ATTEND_DEPT
+ggplot(data = cor.BarData, aes(x = EXP_GPA, fill = ATTEND_DEPT)) +
+    geom_bar(position = "fill") +
+    labs(
+        title = "Covariation between Expected CGPA in Graduation and Attending Seminar/Conferences related to Department",
+        x = "Expected CGPA",
+        y = "Count"
+    ) +
+    scale_x_discrete(
+        labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49")
+    ) +
+    scale_fill_discrete(
+        name = "Attend Seminar/Conference",
+        labels = c("1" = "Yes", "2" = "No")
+    )
+
 # Point Area Chart Plotting for Covariation between EXP_GPA and ATTEND_DEPT
 ggplot(data = cor.BarData, mapping = aes(x = ATTEND_DEPT, y = EXP_GPA)) +
     geom_count(mapping = aes(x = ATTEND_DEPT, y = EXP_GPA)) +

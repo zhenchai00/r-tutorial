@@ -31,6 +31,7 @@ head(test)
 library(caret)
 library(e1071)
 library(AUC)
+library(pROC)
 
 #Y=1 and N=0
 train$DEFAULT <- as.factor(ifelse(train$DEFAULT=="Y", 1, 0))

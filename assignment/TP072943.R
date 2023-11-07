@@ -272,6 +272,31 @@ ggplot(data = cor.BarData, aes(x = EXP_GPA, fill = ATTEND_DEPT)) +
         labels = c("1" = "Yes", "2" = "No")
     )
 
+ggplot(data = cor.BarData, aes(x = EXP_GPA, fill = ATTEND_DEPT)) +
+    geom_bar(position = "fill") +
+    labs(
+        title = "Covariation between Expected CGPA in Graduation and Attending Seminar/Conferences related to Department",
+        x = "Expected CGPA",
+        y = "Count"
+    ) +
+    scale_x_discrete(
+        labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49")
+    ) +
+    scale_fill_discrete(
+        name = "Attend Seminar/Conference",
+        labels = c("1" = "Yes", "2" = "No")
+    )
+
+ggplot(data = studentData) +
+    labs(title = "The co-variance between Parental Status and Expected CGPA at Graduation",
+         x = "Expected CGPA at Graduation", y = "Frequency",
+         fill = "Parental Status") +
+    geom_bar(position = "fill", width = 0.7, 
+             mapping = aes(x = EXP_GPA, fill = as.factor(PARENTAL_STATUS))) +
+    scale_fill_manual(values = c("red", "green", "blue"),
+                      labels = c("Married", "Divorced", "Died - one of them or both")) +
+    scale_x_discrete(drop = FALSE) +
+    theme_minimal()
 
 
 # Point Area Chart Plotting for Covariation between EXP_GPA and ATTEND_DEPT
@@ -316,7 +341,7 @@ data.long <- data.Set %>%
 
 # Plot multivariate grouped bar chart
 ggplot(data = data.long, aes(x = EXP_GPA, fill = Value)) +
-    geom_bar(position = "dodge") +
+    geom_bar(position = "fill") +
     labs(
         title = "Multivariate Grouped Bar Chart",
         x = "Expected CGPA",
@@ -327,8 +352,19 @@ ggplot(data = data.long, aes(x = EXP_GPA, fill = Value)) +
         breaks = c("1", "2", "Yes", "No"), # Specify unique levels from the gathered data
         labels = c("< 2.00", "2.00 - 2.49", "Yes", "No") # Specify labels for the legend
     ) +
+    scale_x_discrete(drop = FALSE) +
     theme_minimal()
 
+ggplot(data = studentData) +
+    labs(title = "The co-variance between Parental Status and Expected CGPA at Graduation",
+         x = "Expected CGPA at Graduation", y = "Frequency",
+         fill = "Parental Status") +
+    geom_bar(position = "fill", width = 0.7, 
+             mapping = aes(x = EXP_GPA, fill = as.factor(PARENTAL_STATUS))) +
+    scale_fill_manual(values = c("red", "green", "blue"),
+                      labels = c("Married", "Divorced", "Died - one of them or both")) +
+    scale_x_discrete(drop = FALSE) +
+    theme_minimal()
 
 data.long <- data.Set %>%
     gather(key = "Variable", value = "Value", -EXP_GPA)
@@ -370,6 +406,92 @@ mosaicplot(~ EXP_GPA + LISTENS + NOTES + SCHOLARSHIP + ATTEND_DEPT, data = data.
 
 
 
+# Decision Tree Test
+library(caret)
+library(rpart)
+library(rpart.plot)	
+library(AUC)
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+mytree <- rpart(
+    EXP_GPA ~ HS_TYPE + SCHOLARSHIP + KIDS + WORK, 
+    data = student.Data, 
+    method = "class",
+    minsplit = 1,
+    minbucket = 1,
+    cp = 0.002
+)
+
+mytree
+
+prp(mytree,
+    extra = 8, #display number of observations for each terminal node
+    roundint=F, #don't round to integers in output
+    digits=1)
+
+tree.str <- rpart(
+    EXP_GPA ~ NOTES + SCHOLARSHIP + LISTENS + ATTEND_DEPT, 
+    data = student.Data, 
+    method = "class",
+    minsplit = 1,
+    minbucket = 1,
+    cp = 0.01
+)
+
+tree.str
+
+prp(tree.str,
+    extra = 8, #display number of observations for each terminal node
+    roundint=F, #don't round to integers in output
+    digits=1)
+
+dt1.Data <- student.Data
+# Convert numeric levels to factor labels for appropriate columns in student.Data
+dt1.Data$ATTEND_DEPT <- factor(
+    dt1.Data$ATTEND_DEPT,
+    levels = c(1, 2),
+    labels = c("Yes", "No")
+)
+
+dt1.Data$NOTES <- factor(
+    dt1.Data$NOTES,
+    levels = c(1, 2, 3),
+    labels = c("Never", "Sometimes", "Always")
+)
+
+dt1.Data$LISTENS <- factor(
+    dt1.Data$LISTENS,
+    levels = c(1, 2, 3),
+    labels = c("Never", "Sometimes", "Always")
+)
+
+dt1.Data$SCHOLARSHIP <- factor(
+    dt1.Data$SCHOLARSHIP,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("None", "25%", "50%", "75%", "Full")
+)
+
+dt1.Data$EXP_GPA <- factor(
+    dt1.Data$EXP_GPA,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("<2.00", "2.00-2.49", "2.50-2.99", "3.00-3.49", "above 3.49")
+)
+
+# Now create the decision tree using the modified dt1.Data
+tree.str <- rpart(
+    EXP_GPA ~ NOTES + SCHOLARSHIP + LISTENS + ATTEND_DEPT, 
+    data = dt1.Data, 
+    method = "class",
+    minsplit = 1,
+    minbucket = 1,
+    # cp = 0.002
+    cp = 0.01
+)
+
+# Display the decision tree
+tree.str
+fancyRpartPlot(tree.str, caption = NULL)
 
 
 # Decision Tree Test
@@ -443,11 +565,10 @@ dt.Set$EXP_GPA <- factor(
 # Build the decision tree model
 model.Dtree <- rpart(
     EXP_GPA ~ .,
-    # EXP_GPA ~ ATTEND_DEPT,
     data = dt.Set,
     method = "class",
-    minsplit = 2,
-    minbucket = 1
+    minsplit = 1,
+    minbucket = 1,
 )
 
 # display tree plot

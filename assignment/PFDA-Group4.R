@@ -124,6 +124,74 @@ ggplot(data = bar.Data, aes(x = EXP_GPA, fill = EXP_GPA)) +
     )
 
 
+# Research Question 1: Does students who listen in class, 
+# more likely to achieve a higher expected cumulative grade point average (GPA) in graduation
+
+# uni-variation of student listening in classes
+data.Copy <- student.Data
+data.Copy$LISTENS = as.factor(data.Copy$LISTENS)
+head(data.Copy)
+ggplot(data = data.Copy) + 
+  geom_bar(
+    mapping = aes(x = as.factor(LISTENS), fill = LISTENS)
+  ) +
+  geom_text(
+    aes(x = as.factor(LISTENS), y = after_stat(count), label = after_stat(count)),
+    stat = "count",
+    position = position_dodge(width = 0.9),
+    vjust = -0.5,
+    size = 3
+  ) +
+  labs(
+    title = "Variation of Student Listening in Classes",
+    x = "Listens",
+    y = "Count"
+  ) +
+  scale_x_discrete(
+    labels = c("1" = "Never", "2" = "Sometimes", "3" = "Always"),
+    limits = c("1","2","3")
+  ) +
+  scale_fill_manual(
+    values = c("1" = "red","2" = "yellow","3" = "green"),
+    breaks = c("1","2","3"),
+    labels = c("Never","Sometimes","Always")
+  )
+
+# bi-variation between EXP_GPA and LISTENS
+ggplot(data = data.Copy, aes(x = as.factor(EXP_GPA), fill = as.factor(LISTENS))) + 
+  geom_bar(
+    position = "dodge"
+  ) +
+  geom_text(
+    aes(x = EXP_GPA, y = after_stat(count), label = after_stat(count)),
+    stat = "count",
+    position = position_dodge(width = 0.9),
+    vjust = -0.5,
+    size = 3
+  ) +
+  labs(
+    title = "Covariation between Expected CGPA in Graduation and Listening in Classes",
+    x = "Expected CGPA",
+    y = "Count"
+  ) +
+  scale_x_discrete(
+    labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49", "5" = "Above 3.49")
+  ) +
+  scale_fill_discrete(
+    name = "Listening in Classes",
+    labels = c("1"="Never", "2"="Sometimes", "3"="Always")
+  )
+
+
+
+# Chi-Square Test between EXP_GPA and LISTENS
+tbl = table(data.Copy$EXP_GPA, data.Copy$LISTENS)
+chisq.test(tbl)
+
+# Polychoric between EXP_GPA and LISTENS
+polychor(data.Copy$EXP_GPA, data.Copy$LISTENS)
+
+
 # Research Question 2: Does student who take notes in class, 
 # more likely to achieve a higher expected cumulative grade point average (GPA) in graduation.
 

@@ -182,6 +182,30 @@ ggplot(data = data.Copy, aes(x = as.factor(EXP_GPA), fill = as.factor(LISTENS)))
     labels = c("1"="Never", "2"="Sometimes", "3"="Always")
   )
 
+ggplot(data = data.Copy) + 
+  geom_bar(
+    mapping = aes(x = as.factor(EXP_GPA), fill = as.factor(LISTENS))
+  ) +
+  geom_text(
+    aes(x = EXP_GPA, y = after_stat(count), label = after_stat(count)),
+    stat = "count",
+    position = position_dodge(width = 0.9),
+    vjust = -0.5,
+    size = 3
+  ) +
+  labs(
+    title = "Covariation between Expected CGPA in Graduation and Listening in Classes",
+    x = "Expected CGPA",
+    y = "Count"
+  ) +
+  scale_x_discrete(
+    labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49", "5" = "Above 3.49")
+  ) +
+  scale_fill_discrete(
+    name = "Listening in Classes",
+    labels = c("1"="Never", "2"="Sometimes", "3"="Always")
+  )
+
 
 
 # Chi-Square Test between EXP_GPA and LISTENS

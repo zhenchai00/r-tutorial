@@ -124,8 +124,8 @@ ggplot(data = bar.Data, aes(x = EXP_GPA, fill = EXP_GPA)) +
     )
 
 
-# Research Question 1: Does students who listen in class, 
-# more likely to achieve a higher expected cumulative grade point average (GPA) in graduation
+# Research Question 1: Does listening attentively in class increase the likelihood 
+# of a student achieving a higher expected CGPA upon graduation?
 
 # uni-variation of student listening in classes
 data.Copy <- student.Data
@@ -216,8 +216,8 @@ chisq.test(tbl)
 polychor(data.Copy$EXP_GPA, data.Copy$LISTENS)
 
 
-# Research Question 2: Does student who take notes in class, 
-# more likely to achieve a higher expected cumulative grade point average (GPA) in graduation.
+# Research Question 2: Does taking notes in class increase the likelihood of 
+# a student achieving a higher expected CGPA upon graduation?
 
 ##Uni-variation of student who take notes in class 
 student.Data$NOTES <- as.factor(student.Data$NOTES)
@@ -308,8 +308,110 @@ Notes.Value<-student.Data$NOTES
 polychor(exp.GPA.Value, Notes.Value)
 
 
-# Research Question 4: Does student who attends seminars or conferences related to the department, 
-# more likely to achieve a higher expected cumulative grade point average (GPA).
+# Research Question 3: Does having scholarships increase the 
+# likelihood of a student achieving a higher expected CGPA upon graduation?
+
+## Uni-variant Analysis of Student with Scholarships
+bar.Data <- student.Data
+bar.Data$SCHOLARSHIP = as.factor(bar.Data$SCHOLARSHIP)
+head(bar.Data)
+ggplot(data = bar.Data) +
+  geom_bar(
+    mapping = aes(x = as.factor(SCHOLARSHIP))
+  ) +
+  geom_text(
+    aes(x = as.factor(SCHOLARSHIP), y = ..count.., label = ..count..),
+    stat = "count",
+    position = position_dodge(width = 0.9),
+    vjust = -0.5,
+    size = 3
+  ) +
+  labs(
+    title = "Variant of Students With Scholarships",
+    x = "Scholarship Type",
+    y = "Student Count"
+  ) +
+  scale_x_discrete(
+    labels = c("1" = "None", "2" = "25%", "3" = "50%", "4" = "70%", "5" = "Full")
+  ) 
+  
+
+## Bi-variant Analysis For Expected GPA And Students With Scholarships
+# Bar Chart Plotting
+ggplot(data = student.Data, aes(x = as.factor(EXP_GPA), fill = as.factor(SCHOLARSHIP)))+
+  geom_bar(
+    position = "dodge"
+  ) +
+  geom_text(
+    aes(x = EXP_GPA, y = ..count.., label = ..count..),
+    stat = "count",
+    position = position_dodge(width = 0.9),
+    vjust = -0.5,
+    size = 3
+  ) +
+  labs(
+    title = "Covariation between Expected CGPA in Graduation and Students with Scholarships",
+    x = "Expected CGPA",
+    y = "Student Count"
+  ) +
+  scale_x_discrete(
+    labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49")
+  ) +
+  scale_fill_discrete(
+    name = "Scholarship Type",
+    labels = c("1" = "None", "2" = "25%", "3" = "50%", "4" = "70%", "5" = "Full")
+  )
+
+# Stacked Bar Chart Plotting
+ggplot(data = student.Data, aes(x = as.factor(EXP_GPA), fill = as.factor(SCHOLARSHIP)))+
+  geom_bar(
+      position = "fill"
+    ) +
+  labs(
+    title = "Covariation between Expected CGPA in Graduation and Students with Scholarships",
+    x = "Expected CGPA",
+    y = "Student Count"
+  ) +
+  scale_x_discrete(
+    labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49")
+  ) +
+  scale_fill_discrete(
+    name = "Scholarship Type",
+    labels = c("1" = "None", "2" = "25%", "3" = "50%", "4" = "70%", "5" = "Full")
+  )
+
+# Point Area Chart Plotting
+ggplot(data = student.Data, aes(x = as.factor(SCHOLARSHIP), y = as.factor(EXP_GPA) ) )+
+  geom_count()+
+  labs(
+    title = "Covariation between Expected CGPA in Graduation and Students With Scholarships",
+    x = "Scholarship Type",
+    y = "Expected CGPA"
+  ) +
+  scale_x_discrete(
+    labels = c("1" = "None", "2" = "25%", "3" = "50%", "4" = "70%", "5" = "Full")
+    )+
+  scale_y_discrete(labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49"))+
+  scale_fill_discrete(name = "Scholarship Type")
+
+
+## Chi Square Test
+tbl <- table(student.Data$SCHOLARSHIP, student.Data$SCHOLARSHIP)
+chisq.test(tbl)
+
+
+## Polychoric Correlation Analysis
+# to get any relevant data 
+exp.GPA.Value <- student.Data$SCHOLARSHIP
+scholarship.Value <- student.Data$SCHOLARSHIP
+
+# check the correlation with Polychoric method
+polychor(exp.GPA.Value, scholarship.Value)
+
+
+
+# Research Question 4: Does attending seminars or conferences related to the department 
+# increase the likelihood of a student achieving a higher expected CGPA upon graduation?
 
 # Variation of student attend to seminars or conference related to the department
 bar.Data <- student.Data
@@ -416,6 +518,7 @@ tbl <- table(student.Data$EXP_GPA, student.Data$ATTEND_DEPT)
 chisq.test(tbl)
 
 
+
 # Decision Tree Test
 dt.Set <- student.Data %>% 
     select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
@@ -450,7 +553,6 @@ dt.Set$EXP_GPA <- factor(
 # Build the decision tree model
 model.Dtree <- rpart(
     EXP_GPA ~ .,
-    # EXP_GPA ~ ATTEND_DEPT,
     data = dt.Set,
     method = "class",
     minsplit = 2,
@@ -536,3 +638,61 @@ print(confusion_matrix)
 library(pROC)
 roc_curve <- roc(as.numeric(lr.Set$EXP_GPA_binary == 1), pred_probs)
 plot(roc_curve, main = "ROC Curve", col = "blue")
+
+
+# Naive Bayesian 
+library(caret)
+library(e1071)
+library(AUC)
+library(pROC)
+
+# Load the data
+nb.Set <- student.Data %>% 
+    select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
+
+# check for missing values
+sum(is.na(nb.Set))
+
+# check for zero variance prediction
+nearZeroVar(nb.Set)
+
+# Train model 
+naive.Model <- naiveBayes(EXP_GPA ~ ., data = nb.Set)
+
+# Confusion Matrix
+pc <- predict(naive.Model, nb.Set, type = "class")
+pc
+summary(pc)
+xtab <- table(pc, nb.Set$EXP_GPA)
+caret::confusionMatrix(xtab, positive = "1")
+
+# train model for lift chart
+nb_probs <- predict(naive.Model, nb.Set, type = "raw")
+
+# Check for NaN values
+if (any(is.na(nb_probs))) {
+    stop("Predicted probabilities contain NaN values. Check your data and model.")
+}
+
+# Extract the probabilities for the positive class as value 4 (3.00-3.49)
+positive_class_prob <- nb_probs[, "4"]
+
+# Create a data frame with actual and predicted values
+lift_data_nb <- data.frame(
+    actual = as.numeric(nb.Set$EXP_GPA == "4"),
+    predicted = positive_class_prob
+)
+
+# Sort the data frame by predicted probability (descending order)
+lift_data_nb <- lift_data_nb[order(-positive_class_prob), ]
+
+# Calculate cumulative gains
+lift_data_nb$cumulative_actuals <- cumsum(lift_data_nb$actual)
+lift_data_nb$cumulative_predictions <- cumsum(lift_data_nb$predicted)
+
+# Calculate lift
+lift_data_nb$lift <- lift_data_nb$cumulative_predictions / lift_data_nb$cumulative_actuals
+
+# Plot the lift chart
+plot(1:nrow(lift_data_nb), lift_data_nb$lift, type = "l", col = "blue", lwd = 2, xlab = "Percentage of data", ylab = "Lift", main = "Naive Bayes - Lift Chart")
+

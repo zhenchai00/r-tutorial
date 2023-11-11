@@ -80,6 +80,3 @@ labels <- pred.LogReg$target
 predictions <- pred.LogReg$score
 auc(roc(predictions, labels), min = 0, max = 1)
 plot(roc(predictions, labels), min=0, max=1, type="l", main="Logistic Regression - ROC Chart")
-
-
-

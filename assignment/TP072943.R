@@ -710,125 +710,59 @@ plot(roc_curve, main = "ROC Curve", col = "blue")
 
 
 
-# Naive Bayesian
+# Naive Bayesian 
 library(caret)
 library(e1071)
 library(AUC)
-install.packages("pheatmap")
-library(pheatmap)
-install.packages("cvms")
-library(cvms)
-install.packages("pROC")
 library(pROC)
 
+# Load the data
 nb.Set <- student.Data %>% 
     select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
-head(nb.Set)
 
-# Convert variables to factors if needed
-nb.Set$ATTEND_DEPT <- factor(
-    nb.Set$ATTEND_DEPT,
-    levels = c(1, 2),
-    labels = c("Yes", "No")
-)
-nb.Set$NOTES <- factor(
-    nb.Set$NOTES,
-    levels = c(1, 2, 3),
-    labels = c("Never", "Sometimes", "Always")
-)
-nb.Set$LISTENS <- factor(
-    nb.Set$LISTENS,
-    levels = c(1, 2, 3),
-    labels = c("Never", "Sometimes", "Always")
-)
-nb.Set$SCHOLARSHIP <- factor(
-    nb.Set$SCHOLARSHIP,
-    levels = c(1, 2, 3, 4, 5),
-    labels = c("None", "25%", "50%", "75%", "Full")
-)
-nb.Set$EXP_GPA <- factor(
-    nb.Set$EXP_GPA,
-    levels = c(1, 2, 3, 4),
-    labels = c("<2.00", "2.00-2.49", "2.50-2.99", "3.00-3.49")
-)
-head(nb.Set)
+# check for missing values
+sum(is.na(nb.Set))
 
-# Train the Naive Bayes model
-nb_model <- naiveBayes(EXP_GPA ~ LISTENS + NOTES + SCHOLARSHIP + ATTEND_DEPT, data = nb.Set)
-nb_model
-sum(is.na(nb.Set$EXP_GPA))
+# check for zero variance prediction
+nearZeroVar(nb.Set)
 
-# Get confusion matrix
-confusion_matrix <- table(predict(nb_model, nb.Set), nb.Set$EXP_GPA)
-print(confusion_matrix)
+# Train model 
+naive.Model <- naiveBayes(EXP_GPA ~ ., data = nb.Set)
 
-# Compute confusion matrix
-confusion_matrix <- confusionMatrix(data = predict(nb_model, nb.Set), reference = nb.Set$EXP_GPA)
+# Confusion Matrix
+pc <- predict(naive.Model, nb.Set, type = "class")
+pc
+summary(pc)
+xtab <- table(pc, nb.Set$EXP_GPA)
+caret::confusionMatrix(xtab, positive = "1")
 
-# Create confusion matrix heatmap
-heatmap(confusion_matrix$table, 
-        Colv = NA, 
-        Rowv = NA, 
-        col = colorRampPalette(c("white", "blue"))(20),
-        main = "Confusion Matrix Heatmap",
-        xlab = "Predicted",
-        ylab = "Actual")
+# train model for lift chart
+nb_probs <- predict(naive.Model, nb.Set, type = "raw")
 
-############################################
-# Plot the confusion matrix
-conf_matrix_plot <- ggplot(data = as.data.frame(confusion_matrix$table), aes(x = Reference, y = Prediction, fill = log(Freq))) +
-    geom_tile() +
-    scale_fill_gradient(low = "white", high = "blue") +
-    theme_minimal() +
-    labs(title = "Confusion Matrix Heatmap",
-         x = "Actual",
-         y = "Predicted")
-
-# Print the plot
-print(conf_matrix_plot)
-
-
-############################################
-# Get predicted probabilities for each class
-pred_probs <- predict(nb_model, nb.Set, type = "raw")
-pred_probs
-
-# Convert EXP_GPA to binary for ROC curve calculation
-binary_EXP_GPA <- ifelse(as.numeric(nb.Set$EXP_GPA) > 2, 1, 0)
-binary_EXP_GPA
-
-unique(pred_probs[, 4])
-# Calculate ROC curve
-roc_curve <- roc(binary_EXP_GPA, as.numeric(pred_probs[, 4]) > 0.3)  # Assuming you want ROC for class "3.00-3.49"
-
-# Plot ROC curve
-plot(roc_curve, main = "ROC Curve", col = "blue", lwd = 2)
-
-
-
-
-############################################
-# Create Precision-Recall curve for each class
-pr_curves <- multiclass.pr.curve(response = nb.Set$EXP_GPA, predictor = as.numeric(pred_probs), plot = TRUE)
-
-# Function to calculate precision and recall
-calculate_precision_recall <- function(predictions, true_labels, positive_class) {
-    true_positives <- sum(predictions == positive_class & true_labels == positive_class)
-    predicted_positives <- sum(predictions == positive_class)
-    actual_positives <- sum(true_labels == positive_class)
-    
-    precision <- true_positives / predicted_positives
-    recall <- true_positives / actual_positives
-    
-    return(c(precision = precision, recall = recall))
+# Check for NaN values
+if (any(is.na(nb_probs))) {
+    stop("Predicted probabilities contain NaN values. Check your data and model.")
 }
 
-# Convert EXP_GPA to binary for precision-recall calculation
-binary_EXP_GPA <- ifelse(as.numeric(nb.Set$EXP_GPA) > 2, 1, 0)
+# Extract the probabilities for the positive class as value 4 (3.00-3.49)
+positive_class_prob <- nb_probs[, "4"]
 
-# Calculate precision and recall for "3.00-3.49" class
-precision_recall <- calculate_precision_recall(as.numeric(pred_probs[, 4] > 0.5), binary_EXP_GPA, positive_class = 1)  # Assuming "3.00-3.49" is the fourth column in pred_probs
+# Create a data frame with actual and predicted values
+lift_data_nb <- data.frame(
+    actual = as.numeric(nb.Set$EXP_GPA == "4"),
+    predicted = positive_class_prob
+)
 
-# Print precision and recall
-print(paste("Precision for 3.00-3.49:", precision_recall[1]))
-print(paste("Recall for 3.00-3.49:", precision_recall[2]))
+# Sort the data frame by predicted probability (descending order)
+lift_data_nb <- lift_data_nb[order(-positive_class_prob), ]
+
+# Calculate cumulative gains
+lift_data_nb$cumulative_actuals <- cumsum(lift_data_nb$actual)
+lift_data_nb$cumulative_predictions <- cumsum(lift_data_nb$predicted)
+
+# Calculate lift
+lift_data_nb$lift <- lift_data_nb$cumulative_predictions / lift_data_nb$cumulative_actuals
+
+# Plot the lift chart
+plot(1:nrow(lift_data_nb), lift_data_nb$lift, type = "l", col = "blue", lwd = 2, xlab = "Percentage of data", ylab = "Lift", main = "Naive Bayes - Lift Chart")
+

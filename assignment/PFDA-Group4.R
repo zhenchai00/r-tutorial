@@ -221,68 +221,69 @@ polychor(data.Copy$EXP_GPA, data.Copy$LISTENS)
 
 ##Uni-variation of student who take notes in class 
 student.Data$NOTES <- as.factor(student.Data$NOTES)
-ggplot(data = student.Data, aes(x = as.factor(NOTES), fill = NOTES)) +
-    geom_bar(position = "dodge") +
+ggplot(data = student.Data) +
+    geom_bar(
+      mapping = aes(x = as.factor(NOTES), fill = NOTES)
+    ) +
     geom_text(
-        aes(x = as.factor(NOTES), y = ..count.., label = after_stat(count)),
-        stat = "count",
-        position = position_dodge(width = 0.9),
-        vjust = -0.5,
-        size = 3
+      aes(x = as.factor(NOTES), y = ..count.., label = after_stat(count)),
+      stat = "count",
+      position = position_dodge(width = 0.9),
+      vjust = -0.5,
+      size = 3
     ) +
     labs(
-        title = "Covariation of Student Taking Notes in Classes",
-        x = "Taking Notes",
-        y = "Count"
+      title = "Covariation of Student Taking Notes in Classes",
+      x = "Taking Notes",
+      y = "Count"
     ) +
     scale_x_discrete(
-        labels = c("1" = "Never", "2" = "Often", "3" = "Always"),
-        limits = c("1", "2", "3")
+      labels = c("1" = "Never", "2" = "Sometimes", "3" = "Always"),
+      limits = c("1", "2", "3")
     ) +
-    scale_fill_manual(
-        values = c("1" = "red2", "2" = "blue", "3" = "darkgreen"),
-        labels = c("1" = "Never", "2" = "Often", "3" = "Always")
+    scale_fill_manual(values = c("1" = "red2", "2" = "blue", "3" = "darkgreen"),
+                      labels=c("1" = "Never", "2" = "Sometimes", "3" = "Always")
     )
-
 ##bi-variant for Covariation between EXP_GPA and NOTES
-ggplot(data = student.Data, aes(x = as.factor(EXP_GPA), fill = as.factor(NOTES))) +
-    geom_bar(position = "dodge") +
+ggplot(data = student.Data, aes(x = as.factor(EXP_GPA), fill = as.factor(NOTES)))+
+    geom_bar(
+      position = "dodge"
+      ) +
     geom_text(
-        aes(x = as.factor(EXP_GPA), y = ..count.., label = ..count..),
-        stat = "count",
-        position = position_dodge(width = 0.9),
-        vjust = -0.5,
-        size = 3
+      aes(x = EXP_GPA, y = ..count.., label = ..count..),
+      stat = "count",
+      position = position_dodge(width = 0.9),
+      vjust = -0.5,
+      size = 3
     ) +
     labs(
-        title = "Covariation between Expected CGPA in Graduation and Taking Notes in Classes",
-        x = "Expected CGPA",
-        y = "Count"
+      title = "Covariation between Expected CGPA in Graduation and Taking Notes in Classes",
+      x = "Expected CGPA",
+      y = "Count"
     ) +
     scale_x_discrete(
-        labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49")
+      labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49")
     ) +
-    scale_fill_manual(
-        values = c("1" = "red2", "2" = "blue", "3" = "darkgreen"),
-        labels = c("1" = "Never", "2" = "Often", "3" = "Always")
+    scale_fill_discrete(
+      name = "Taking Notes in Classes",
+      labels = c("1" = "Never", "2" = "Sometimes","3"="Always")
     )
   
 # Stacked Bar Chart Plotting for Covariation between EXP_GPA and NOTES
 ggplot(data = student.Data, aes(x = as.factor(EXP_GPA), fill = as.factor(NOTES))) +
     geom_bar(position = "fill") +
     labs(
-        title = "Covariation between Expected CGPA in Graduation and Taking Notes in Classes",
-        x = "Expected CGPA",
-        y = "Count"
+      title = "Covariation between Expected CGPA in Graduation and Taking Notes in Classes",
+      x = "Expected CGPA",
+      y = "Count"
     ) +
     scale_x_discrete(
-        labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49")
+      labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49")
     ) +
-    scale_fill_manual(
-        values = c("1" = "red2", "2" = "blue", "3" = "darkgreen"),
-        labels = c("1" = "Never", "2" = "Often", "3" = "Always")
-    )
-
+    scale_fill_discrete(
+      name = "Taking Notes",
+      labels = c("1" = "Never", "2" = "Sometimes","3"="Always")
+    )  
 # Point Area Chart Plotting for Covariation between EXP_GPA and NOTES
 ggplot(data = student.Data, aes(x = as.factor(NOTES), y = as.factor(EXP_GPA))) +
     geom_count() +
@@ -292,20 +293,20 @@ ggplot(data = student.Data, aes(x = as.factor(NOTES), y = as.factor(EXP_GPA))) +
       y = "Expected CGPA"
     ) +
     scale_x_discrete(
-      labels = c("1" = "Never", "2" = "Often", "3" = "Always")
+      labels = c("1" = "Never", "2" = "Sometimes", "3" = "Always")
     ) +
     scale_y_discrete(
       labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49")
     )
   
 ##Chi Square Test
-chi_square.Data<- table(student.Data$EXP_GPA, student.Data$NOTES)
-chisq.test(chi_square.Data)
+chi_square_data<- table(student.Data$EXP_GPA, student.Data$NOTES)
+chisq.test(chi_square_data)
 
 ##Polychoric Correlation Analysis
 exp.GPA.Value <- student.Data$EXP_GPA
 Notes.Value<-student.Data$NOTES
-polychor(exp.GPA.Value, Notes.Value)
+polychor(exp.GPA.Value,Notes.Value)
 
 
 # Research Question 3: Does having scholarships increase the 

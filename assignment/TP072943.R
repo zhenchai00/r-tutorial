@@ -766,3 +766,164 @@ lift_data_nb$lift <- lift_data_nb$cumulative_predictions / lift_data_nb$cumulati
 # Plot the lift chart
 plot(1:nrow(lift_data_nb), lift_data_nb$lift, type = "l", col = "blue", lwd = 2, xlab = "Percentage of data", ylab = "Lift", main = "Naive Bayes - Lift Chart")
 
+
+# K Nearest Neighbor
+library(caret)
+library(AUC)
+library(KKN)
+
+# Load the data
+kkn.Set <- student.Data %>% 
+    select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
+
+# Install required packages if not already installed
+install.packages(c("kknn", "pcaL1", "pROC"))
+
+# Load required libraries
+library(kknn)
+library(pcaL1)
+library(pROC)
+
+# Create a function to split the data into training and testing sets
+split_data <- function(data, split_ratio = 0.8) {
+    set.seed(123)  # Set seed for reproducibility
+    indices <- sample(1:nrow(data), size = round(split_ratio * nrow(data)))
+    training_data <- data[indices, ]
+    testing_data <- data[-indices, ]
+    return(list(training_data = training_data, testing_data = testing_data))
+}
+
+# Split the data into training and testing sets
+data_splits <- split_data(kkn.Set)
+
+# Training set
+train_set <- data_splits$training_data
+# Testing set
+test_set <- data_splits$testing_data
+
+# Define the predictor variables (features) and the target variable
+X_train <- train_set[, c("LISTENS", "NOTES", "SCHOLARSHIP", "ATTEND_DEPT")]
+Y_train <- train_set$EXP_GPA
+X_test <- test_set[, c("LISTENS", "NOTES", "SCHOLARSHIP", "ATTEND_DEPT")]
+Y_test <- test_set$EXP_GPA
+
+# Train the KNN model
+k_value <- 5  # Set the value of k
+knn_model <- kknn::train.kknn(EXP_GPA ~ ., data = train_set, scale = TRUE, kmax = k_value)
+knn_predictions <- predict(knn_model, X_test)
+knn_predictions
+
+
+# Combine actual and predicted values into a data frame
+lift_data <- data.frame(actual = Y_test, predicted = knn_predictions)
+
+# Order the data by predicted probabilities in descending order
+lift_data <- lift_data[order(-as.numeric(lift_data$predicted)), ]
+
+# Calculate the cumulative number of actual positives
+lift_data$cumulative_actuals <- cumsum(as.numeric(lift_data$actual == "3.00-3.49"))
+
+# Calculate the cumulative number of predicted positives
+lift_data$cumulative_predictions <- cumsum(as.numeric(lift_data$predicted == "3.00-3.49"))
+
+# Calculate the lift at each decile
+lift_data$lift <- lift_data$cumulative_predictions / lift_data$cumulative_actuals
+
+# Print the first few rows of the lift data
+print(head(lift_data))
+
+# Confusion matrix at a specific decile (e.g., the first decile)
+decile_conf_matrix <- table(lift_data$predicted[1:(nrow(lift_data)/10)], lift_data$actual[1:(nrow(lift_data)/10)])
+print("Confusion Matrix at First Decile:")
+print(decile_conf_matrix)
+
+
+# Lift Chart
+lift_values <- gains(Y_test, as.numeric(knn_predictions == "3.00-3.49"), groups = 10)
+print("Lift Chart:")
+print(lift_values)
+
+# Create ROC curves for each class
+roc_curves <- lapply(seq_along(levels(Y_test)), function(i) {
+    roc(Y_test == levels(Y_test)[i], as.numeric(knn_predictions == levels(Y_test)[i]))
+})
+
+# Plot the ROC curves
+print("ROC Curves:")
+par(mfrow = c(1, 1))
+plot(roc_curves[[1]], col = 1, main = "KNN - ROC Curves", lwd = 2)
+sapply(2:length(roc_curves), function(i) {
+    plot(roc_curves[[i]], col = i, add = TRUE, lwd = 2)
+})
+legend("right", legend = levels(Y_test), col = 1:length(roc_curves), lwd = 2)
+
+
+
+
+
+# K Nearest Neighbor
+library(caret)
+library(kknn)
+library(pROC)
+
+# Load the data
+knn.Set <- student.Data %>% 
+    select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
+
+# Split the data into training and testing sets
+set.seed(123)
+indices <- sample(1:nrow(knn.Set), size = round(0.8 * nrow(knn.Set)))
+train_set <- knn.Set[indices, ]
+test_set <- knn.Set[-indices, ]
+
+# Define the predictor variables (features) and the target variable
+X_train <- train_set[, c("LISTENS", "NOTES", "SCHOLARSHIP", "ATTEND_DEPT")]
+Y_train <- train_set$EXP_GPA
+X_test <- test_set[, c("LISTENS", "NOTES", "SCHOLARSHIP", "ATTEND_DEPT")]
+Y_test <- test_set$EXP_GPA
+
+# Train the KNN model
+k_value <- 5  # Set the value of k
+knn_model <- kknn::train.kknn(EXP_GPA ~ ., data = train_set, scale = TRUE, kmax = k_value)
+knn_predictions <- predict(knn_model, X_test)
+
+# Confusion Matrix
+Y_test <- factor(Y_test, levels = levels(knn_predictions))
+conf_matrix <- confusionMatrix(knn_predictions, Y_test, positive = "1")
+print("Confusion Matrix:")
+print(conf_matrix)
+
+
+# Manual Lift Chart
+# Combine actual and predicted values into a data frame
+lift_data <- data.frame(actual = Y_test, predicted = as.numeric(knn_predictions == "3.00-3.49"))
+
+# Order the data by predicted probabilities in descending order
+lift_data <- lift_data[order(-as.numeric(lift_data$predicted)), ]
+
+# Calculate the cumulative number of actual positives
+lift_data$cumulative_actuals <- cumsum(lift_data$actual)
+
+# Calculate the cumulative number of predicted positives
+lift_data$cumulative_predictions <- cumsum(lift_data$predicted)
+
+# Calculate the lift at each point
+lift_data$lift <- lift_data$cumulative_predictions / lift_data$cumulative_actuals
+
+# Plot the lift chart
+plot(1:nrow(lift_data), lift_data$lift, type = "l", col = "blue", lwd = 2,
+     xlab = "Percentage of data", ylab = "Lift", main = "KNN - Lift Chart")
+
+# Create ROC curves for each class
+roc_curves <- lapply(seq_along(levels(Y_test)), function(i) {
+    roc(Y_test == levels(Y_test)[i], as.numeric(knn_predictions == levels(Y_test)[i]))
+})
+
+# Plot the ROC curves
+print("ROC Curves:")
+par(mfrow = c(1, 1))
+plot(roc_curves[[1]], col = 1, main = "KNN - ROC Curves", lwd = 2)
+sapply(2:length(roc_curves), function(i) {
+    plot(roc_curves[[i]], col = i, add = TRUE, lwd = 2)
+})
+legend("right", legend = levels(Y_test), col = 1:length(roc_curves), lwd = 2)

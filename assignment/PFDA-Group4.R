@@ -654,7 +654,7 @@ tbl <- table(student.Data$EXP_GPA, student.Data$ATTEND_DEPT)
 chisq.test(tbl)
 
 
-# Analysis 5: Decision Tree
+# Extra Features - 1: Decision Tree
 dt.Set <- student.Data %>% 
     select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
 
@@ -714,7 +714,7 @@ xyplot(lift.Dtree, main="Decision Tree - Lift Chart", type=c("l","g"), lwd=2
                      ,y=list(alternating=FALSE,tick.number = 10)))
 
 
-# Analysis 6: Logistic Regression
+# Extra Features - 2: Logistic Regression
 # Load the data
 lr.Set <- student.Data %>% 
     select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
@@ -774,7 +774,7 @@ roc_curve <- roc(as.numeric(lr.Set$EXP_GPA_binary == 1), pred_probs)
 plot(roc_curve, main = "ROC Curve", col = "blue")
 
 
-# Analysis 7: Naive Bayesian 
+# Extra Features - 3: Naive Bayesian 
 library(caret)
 library(e1071)
 library(AUC)
@@ -831,7 +831,7 @@ lift_data_nb$lift <- lift_data_nb$cumulative_predictions / lift_data_nb$cumulati
 plot(1:nrow(lift_data_nb), lift_data_nb$lift, type = "l", col = "blue", lwd = 2, xlab = "Percentage of data", ylab = "Lift", main = "Naive Bayes - Lift Chart")
 
 
-# Analysis 8: K Nearest Neighbors 
+# Extra Features - 4: K Nearest Neighbors 
 library(caTools)
 library(class)
 library(pROC)

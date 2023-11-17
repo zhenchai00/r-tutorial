@@ -127,7 +127,7 @@ ggplot(data = bar.Data, aes(x = EXP_GPA, fill = EXP_GPA)) +
 # Research Question 1: Does listening attentively in class increase the likelihood 
 # of a student achieving a higher expected CGPA upon graduation?
 
-# uni-variation of student listening in classes
+# Analysis 1-1: uni-variation of student listening in classes
 data.Copy <- student.Data
 data.Copy$LISTENS = as.factor(data.Copy$LISTENS)
 head(data.Copy)
@@ -157,7 +157,7 @@ ggplot(data = data.Copy) +
     labels = c("Never","Sometimes","Always")
   )
 
-# bi-variation between EXP_GPA and LISTENS
+# Analysis 1-2: bi-variation between EXP_GPA and LISTENS
 ggplot(data = data.Copy, aes(x = as.factor(EXP_GPA), fill = as.factor(LISTENS))) + 
   geom_bar(
     position = "dodge"
@@ -206,20 +206,62 @@ ggplot(data = data.Copy) +
     labels = c("1"="Never", "2"="Sometimes", "3"="Always")
   )
 
+# Analysis 1-3: multi-variation between EXP_GPA, LISTENS and Partner
+dat.Set <- student.Data %>%
+    select(EXP_GPA, LISTENS, PARTNER)
 
+# Convert variable to factors
+dat.Set$EXP_GPA <- as.factor(dat.Set$EXP_GPA)
+dat.Set$LISTENS <- as.factor(dat.Set$LISTENS)
+dat.Set$PARTNER<-as.factor(dat.Set$PARTNER)
 
-# Chi-Square Test between EXP_GPA and LISTENS
+dat.Set$LISTENS <- factor(
+    dat.Set$LISTENS,
+    levels = c(1, 2, 3),
+    labels = c("Never", "Sometimes", "Always")
+)
+dat.Set$EXP_GPA <- factor(
+    dat.Set$EXP_GPA,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("<2.00", "2.00-2.49", "2.50-2.99", "3.00-3.49", "above 3.49")
+)
+dat.Set$PARTNER <- factor(
+    dat.Set$PARTNER,
+    levels = c(1, 2),
+    labels = c("Yes", "No")
+)
+
+# Plot bar graph
+ggplot(dat.Set, aes (x = EXP_GPA, fill = LISTENS)) + 
+    geom_bar(position = "dodge") +
+    labs(
+        title = "Multi-Variant between Expected CGPA in Graduation, Listen in classess and have partner", 
+        x = "Expected CGPA", 
+        y = "Number of Students"
+    ) +
+    geom_text(
+        stat = 'count',
+        aes(label = stat(count)),
+        position = position_dodge(width = 1),
+        vjust = 1.5,
+        size = 3
+    ) +
+    facet_wrap(~PARTNER, scales = "free") +
+    theme_classic() +
+    scale_fill_discrete(name = "Listens In Classes")
+
+# Analysis 1-4: Chi-Square Test between EXP_GPA and LISTENS
 tbl = table(data.Copy$EXP_GPA, data.Copy$LISTENS)
 chisq.test(tbl)
 
-# Polychoric between EXP_GPA and LISTENS
+# Analysis 1-5: Polychoric between EXP_GPA and LISTENS
 polychor(data.Copy$EXP_GPA, data.Copy$LISTENS)
 
 
 # Research Question 2: Does taking notes in class increase the likelihood of 
 # a student achieving a higher expected CGPA upon graduation?
 
-##Uni-variation of student who take notes in class 
+# Analysis 2-1: Uni-variation of student who take notes in class 
 student.Data$NOTES <- as.factor(student.Data$NOTES)
 ggplot(data = student.Data) +
     geom_bar(
@@ -244,7 +286,8 @@ ggplot(data = student.Data) +
     scale_fill_manual(values = c("1" = "red2", "2" = "blue", "3" = "darkgreen"),
                       labels=c("1" = "Never", "2" = "Sometimes", "3" = "Always")
     )
-##bi-variant for Covariation between EXP_GPA and NOTES
+
+# Analysis 2-2: bi-variant for Covariation between EXP_GPA and NOTES
 ggplot(data = student.Data, aes(x = as.factor(EXP_GPA), fill = as.factor(NOTES)))+
     geom_bar(
       position = "dodge"
@@ -269,7 +312,7 @@ ggplot(data = student.Data, aes(x = as.factor(EXP_GPA), fill = as.factor(NOTES))
       labels = c("1" = "Never", "2" = "Sometimes","3"="Always")
     )
   
-# Stacked Bar Chart Plotting for Covariation between EXP_GPA and NOTES
+# Analysis 2-2: Stacked Bar Chart Plotting for Covariation between EXP_GPA and NOTES
 ggplot(data = student.Data, aes(x = as.factor(EXP_GPA), fill = as.factor(NOTES))) +
     geom_bar(position = "fill") +
     labs(
@@ -284,26 +327,56 @@ ggplot(data = student.Data, aes(x = as.factor(EXP_GPA), fill = as.factor(NOTES))
       name = "Taking Notes",
       labels = c("1" = "Never", "2" = "Sometimes","3"="Always")
     )  
-# Point Area Chart Plotting for Covariation between EXP_GPA and NOTES
-ggplot(data = student.Data, aes(x = as.factor(NOTES), y = as.factor(EXP_GPA))) +
-    geom_count() +
-    labs(
-      title = "Covariation between Expected CGPA in Graduation and Taking Notes in Classes",
-      x = "Taking Notes",
-      y = "Expected CGPA"
-    ) +
-    scale_x_discrete(
-      labels = c("1" = "Never", "2" = "Sometimes", "3" = "Always")
-    ) +
-    scale_y_discrete(
-      labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49")
-    )
   
-##Chi Square Test
+# Analysis 2-3: multi-variant for Covariation between EXP_GPA, NOTES and transport
+dat.Set <- student.Data %>%
+    select(EXP_GPA, NOTES, TRANSPORT)
+
+# Convert variable to factors
+dat.Set$EXP_GPA <- as.factor(dat.Set$EXP_GPA)
+dat.Set$NOTES <- as.factor(dat.Set$NOTES)
+dat.Set$TRANSPORT<-as.factor(dat.Set$TRANSPORT)
+
+dat.Set$NOTES <- factor(
+    dat.Set$NOTES,
+    levels = c(1, 2, 3),
+    labels = c("Never", "Sometimes", "Always")
+)
+dat.Set$EXP_GPA <- factor(
+    dat.Set$EXP_GPA,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("<2.00", "2.00-2.49", "2.50-2.99", "3.00-3.49", "above 3.49")
+)
+dat.Set$TRANSPORT <- factor(
+    dat.Set$TRANSPORT,
+    levels = c(1, 2, 3, 4),
+    labels = c("Bus", "Private Car/Taxi", "Bicyle", "Other")
+)
+
+# Plot bar graph
+ggplot(dat.Set, aes (x = EXP_GPA, fill = NOTES)) + 
+    geom_bar(position = "dodge") +
+    labs(
+        title = "Multi-Variant between Expected CGPA in Graduation, Take notes in classess and type of transportation", 
+        x = "Expected CGPA", 
+        y = "Number of Students"
+    ) +
+    geom_text(
+        stat = 'count',
+        aes(label = stat(count)),
+        position = position_dodge(width = 1),
+        vjust = 1.5,
+        size = 3
+    ) +
+    facet_wrap(~TRANSPORT, scales = "free") +
+    theme_classic() +
+    scale_fill_discrete(name = "Take Notes In Classes")
+
+# Analysis 2-4: Chi Square Test
 chi_square_data<- table(student.Data$EXP_GPA, student.Data$NOTES)
 chisq.test(chi_square_data)
 
-##Polychoric Correlation Analysis
+# Analysis 2-5: Polychoric Correlation Analysis
 exp.GPA.Value <- student.Data$EXP_GPA
 Notes.Value<-student.Data$NOTES
 polychor(exp.GPA.Value,Notes.Value)
@@ -312,7 +385,7 @@ polychor(exp.GPA.Value,Notes.Value)
 # Research Question 3: Does having scholarships increase the 
 # likelihood of a student achieving a higher expected CGPA upon graduation?
 
-## Uni-variant Analysis of Student with Scholarships
+# Analysis 3-1: Uni-variant Analysis of Student with Scholarships
 bar.Data <- student.Data
 bar.Data$SCHOLARSHIP = as.factor(bar.Data$SCHOLARSHIP)
 head(bar.Data)
@@ -337,7 +410,7 @@ ggplot(data = bar.Data) +
   ) 
   
 
-## Bi-variant Analysis For Expected GPA And Students With Scholarships
+# Analysis 3-2: Bi-variant Analysis For Expected GPA And Students With Scholarships
 # Bar Chart Plotting
 ggplot(data = student.Data, aes(x = as.factor(EXP_GPA), fill = as.factor(SCHOLARSHIP)))+
   geom_bar(
@@ -381,27 +454,56 @@ ggplot(data = student.Data, aes(x = as.factor(EXP_GPA), fill = as.factor(SCHOLAR
     labels = c("1" = "None", "2" = "25%", "3" = "50%", "4" = "70%", "5" = "Full")
   )
 
-# Point Area Chart Plotting
-ggplot(data = student.Data, aes(x = as.factor(SCHOLARSHIP), y = as.factor(EXP_GPA) ) )+
-  geom_count()+
-  labs(
-    title = "Covariation between Expected CGPA in Graduation and Students With Scholarships",
-    x = "Scholarship Type",
-    y = "Expected CGPA"
-  ) +
-  scale_x_discrete(
-    labels = c("1" = "None", "2" = "25%", "3" = "50%", "4" = "70%", "5" = "Full")
-    )+
-  scale_y_discrete(labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49"))+
-  scale_fill_discrete(name = "Scholarship Type")
+# Analysis 3-3: Multi-variant Analysis For Expected GPA And Students With Scholarships and Attendance to classes
+dat.Set <- student.Data %>%
+    select(EXP_GPA, SCHOLARSHIP, ATTEND)
 
+# Convert variable to factors
+dat.Set$EXP_GPA <- as.factor(dat.Set$EXP_GPA)
+dat.Set$SCHOLARSHIP <- as.factor(dat.Set$SCHOLARSHIP)
+dat.Set$ATTEND<-as.factor(dat.Set$ATTEND)
 
-## Chi Square Test
+dat.Set$SCHOLARSHIP <- factor(
+    dat.Set$SCHOLARSHIP,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("None", "25%", "50%", "75%", "Full")
+)
+dat.Set$EXP_GPA <- factor(
+    dat.Set$EXP_GPA,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("<2.00", "2.00-2.49", "2.50-2.99", "3.00-3.49", "above 3.49")
+)
+dat.Set$ATTEND <- factor(
+    dat.Set$ATTEND,
+    levels = c(1, 2, 3),
+    labels = c("Never", "Sometimes", "Always")
+)
+
+# Plot bar graph
+ggplot(dat.Set, aes (x = EXP_GPA, fill = SCHOLARSHIP)) + 
+    geom_bar(position = "dodge") +
+    labs(
+        title = "Multi-Variant between Expected CGPA in Graduation, Scholarship and attending to classes", 
+        x = "Expected CGPA", 
+        y = "Number of Students"
+    ) +
+    geom_text(
+        stat = 'count',
+        aes(label = stat(count)),
+        position = position_dodge(width = 1),
+        vjust = 1.5,
+        size = 3
+    ) +
+    facet_wrap(~ATTEND, scales = "free") +
+    theme_classic() +
+    scale_fill_discrete(name = "Scholarship")
+
+# Analysis 3-4:  Chi Square Test
 tbl <- table(student.Data$SCHOLARSHIP, student.Data$SCHOLARSHIP)
 chisq.test(tbl)
 
 
-## Polychoric Correlation Analysis
+# Analysis 3-5:  Polychoric Correlation Analysis
 # to get any relevant data 
 exp.GPA.Value <- student.Data$SCHOLARSHIP
 scholarship.Value <- student.Data$SCHOLARSHIP
@@ -414,7 +516,7 @@ polychor(exp.GPA.Value, scholarship.Value)
 # Research Question 4: Does attending seminars or conferences related to the department 
 # increase the likelihood of a student achieving a higher expected CGPA upon graduation?
 
-# Variation of student attend to seminars or conference related to the department
+# Analysis 4-1: Uni-variation of student attend to seminars or conference related to the department
 bar.Data <- student.Data
 bar.Data$ATTEND_DEPT = as.factor(bar.Data$ATTEND_DEPT)
 head(bar.Data)
@@ -445,7 +547,7 @@ ggplot(data = bar.Data) +
     )
 
 
-# Covariation between EXP_GPA and ATTEND_DEPT
+# Analysis 4-2: Bi-variant Covariation between EXP_GPA and ATTEND_DEPT
 # Check all the related columns for our hypothesis
 data.Set <- student.Data %>%
     select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
@@ -493,20 +595,55 @@ ggplot(data = cor.BarData, aes(x = EXP_GPA, fill = ATTEND_DEPT)) +
         labels = c("1" = "Yes", "2" = "No")
     )
 
-# Point Area Chart Plotting for Covariation between EXP_GPA and ATTEND_DEPT
-ggplot(data = cor.BarData, mapping = aes(x = ATTEND_DEPT, y = EXP_GPA)) +
-    geom_count(mapping = aes(x = ATTEND_DEPT, y = EXP_GPA)) +
+# Analysis 4-3: Multi-variant Analysis for covariation betweent EXP_GPA, ATTEND_DEPT and WORK
+# Select relevant columns
+dat.Set <- student.Data %>%
+    select(EXP_GPA, ATTEND_DEPT, WORK)
+
+# Convert variable to factors
+dat.Set$EXP_GPA <- as.factor(dat.Set$EXP_GPA)
+dat.Set$ATTEND_DEPT <- as.factor(dat.Set$ATTEND_DEPT)
+dat.Set$WORK<-as.factor(dat.Set$WORK)
+
+dat.Set$ATTEND_DEPT <- factor(
+    dat.Set$ATTEND_DEPT,
+    levels = c(1, 2),
+    labels = c("Yes", "No")
+)
+dat.Set$EXP_GPA <- factor(
+    dat.Set$EXP_GPA,
+    levels = c(1, 2, 3, 4, 5),
+    labels = c("<2.00", "2.00-2.49", "2.50-2.99", "3.00-3.49", "above 3.49")
+)
+dat.Set$WORK <- factor(
+    dat.Set$WORK,
+    levels = c(1, 2),
+    labels = c("Yes", "No")
+)
+
+# Plot bar graph
+ggplot(dat.Set, aes (x = EXP_GPA, fill = ATTEND_DEPT)) + 
+    geom_bar(position = "dodge") +
     labs(
-        title = "Covariation between Expected CGPA in Graduation and Attending Seminar/Conferences related to Department",
-        x = "Attend Seminar/Conference",
-        y = "Expected CGPA"
+        title = "Multi-Variant between Expected CGPA in Graduation, Attending Seminar/Conferences related to Department and Working", 
+        x = "Expected CGPA", 
+        y = "Number of Students"
     ) +
-    scale_x_discrete(
-        labels = c("1" = "Yes", "2" = "No")) +
-    scale_y_discrete(labels = c("1" = "< 2.00", "2" = "2.00 - 2.49", "3" = "2.50 - 2.99", "4" = "3.00 - 3.49", "5" = "Above 3.49")) +
-    scale_fill_discrete(name = "Attend Seminar/Conference")
+    geom_text(
+        stat = 'count',
+        aes(label = stat(count)),
+        position = position_dodge(width = 1),
+        vjust = 1.5,
+        size = 3
+    ) +
+    facet_wrap(~WORK, scales = "free") +
+    theme_classic() +
+    scale_fill_discrete(
+        name = "Attend Seminar/Conference",
+        labels = c("1"="Yes", "2"="No")
+    )
 
-
+# Analysis 4-4:  Polychoric Correlation
 # get the relevant data 
 exp.GPA.Value <- student.Data$EXP_GPA
 attendDept.Value <- student.Data$ATTEND_DEPT
@@ -514,13 +651,12 @@ attendDept.Value <- student.Data$ATTEND_DEPT
 # check the correlation with Polychoric method
 polychor(exp.GPA.Value, attendDept.Value)
 
-# Chi Square Test
+# Analysis 4-5:  Chi Square Test
 tbl <- table(student.Data$EXP_GPA, student.Data$ATTEND_DEPT)
 chisq.test(tbl)
 
 
-
-# Decision Tree Test
+# Analysis 5: Decision Tree
 dt.Set <- student.Data %>% 
     select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
 
@@ -580,8 +716,7 @@ xyplot(lift.Dtree, main="Decision Tree - Lift Chart", type=c("l","g"), lwd=2
                      ,y=list(alternating=FALSE,tick.number = 10)))
 
 
-
-# Logistic Regression
+# Analysis 6: Logistic Regression
 # Load the data
 lr.Set <- student.Data %>% 
     select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
@@ -641,7 +776,7 @@ roc_curve <- roc(as.numeric(lr.Set$EXP_GPA_binary == 1), pred_probs)
 plot(roc_curve, main = "ROC Curve", col = "blue")
 
 
-# Naive Bayesian 
+# Analysis 7: Naive Bayesian 
 library(caret)
 library(e1071)
 library(AUC)
@@ -698,7 +833,7 @@ lift_data_nb$lift <- lift_data_nb$cumulative_predictions / lift_data_nb$cumulati
 plot(1:nrow(lift_data_nb), lift_data_nb$lift, type = "l", col = "blue", lwd = 2, xlab = "Percentage of data", ylab = "Lift", main = "Naive Bayes - Lift Chart")
 
 
-# K Nearest Neightbors 
+# Analysis 8: K Nearest Neighbors 
 library(caret)
 library(caTools)
 library(class)
@@ -774,7 +909,7 @@ xyplot(Lift ~ CumulativePercentage, data = lift_data, type = "l",
 # ROC Curve
 # Create an ROC curve
 roc_curve <- roc(response = as.numeric(fac.EGPA == "1"), predictor = as.numeric(knn_model == "1"))
-
+roc_curve
 # Plot the ROC curve
 plot(roc_curve, main = "ROC Curve", col = "blue", lwd = 2, xlim = c(1, 0))
 
@@ -782,3 +917,123 @@ plot(roc_curve, main = "ROC Curve", col = "blue", lwd = 2, xlim = c(1, 0))
 auc_value <- auc(roc_curve)
 cat("AUC:", auc_value, "\n")
 
+
+library(caTools)
+library(class)
+library(pROC)
+# to copy relevant columns into a new data frames
+knn.Data <- student.Data %>%
+    select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
+knn.Test <- student.Data %>%
+    select(EXP_GPA, LISTENS, NOTES, SCHOLARSHIP, ATTEND_DEPT)
+
+# to convert data in every column's data type 
+knn.Data$LISTENS <- factor(
+    knn.Data$LISTENS,
+    levels = c(1, 2, 3),
+)
+knn.Data$SCHOLARSHIP <- factor(
+    knn.Data$SCHOLARSHIP,
+    levels = c(1, 2, 3, 4, 5),
+)
+knn.Data$NOTES <- factor(
+    knn.Data$NOTES,
+    levels = c(1, 2, 3),
+)
+knn.Data$ATTEND_DEPT <- factor(
+    knn.Data$ATTEND_DEPT,
+    levels = c(1, 2),
+)
+knn.Data$EXP_GPA <- factor(
+    knn.Data$EXP_GPA,
+    levels = c(1, 2, 3, 4, 5),
+)
+
+knn.Test$LISTENS <- factor(
+    knn.Test$LISTENS,
+    levels = c(1, 2, 3),
+)
+knn.Test$SCHOLARSHIP <- factor(
+    knn.Test$SCHOLARSHIP,
+    levels = c(1, 2, 3, 4, 5),
+)
+knn.Test$NOTES <- factor(
+    knn.Test$NOTES,
+    levels = c(1, 2, 3),
+)
+knn.Test$ATTEND_DEPT <- factor(
+    knn.Test$ATTEND_DEPT,
+    levels = c(1, 2),
+)
+knn.Test$EXP_GPA <- factor(
+    knn.Test$EXP_GPA,
+    levels = c(1, 2, 3, 4, 5),
+)
+
+str(knn.Data)
+str(knn.Test)
+
+# Hence separate the response variable
+train.Data = knn.Data[,-1]
+# Separate the response variable from the test data
+test.Data = knn.Test[,-1]
+
+head(train.Data)
+head(test.Data)
+
+## Number of categories/classes
+cls<-factor(knn.Data[,1])
+cls
+
+
+## To calculate the test accuracy of the model, we need to know the class of the test data
+##Separating test data categories/class
+actual<-factor(knn.Test[,1])
+actual
+
+## Creating K-NN Model using knn() function
+knnmod<-knn(
+    train=train.Data,
+    test=test.Data,
+    cl=cls,
+    k=3,
+    prob=FALSE
+)
+
+##Predict the new test data
+predicted<-knnmod
+
+## Calculate the classification error
+check.Error = function(actual, predicted) {
+    mean(actual != predicted)
+}
+
+check.Error(actual,predicted)
+
+
+# Caclulate accuracy and other parameters using caret functions
+report<-confusionMatrix(actual, predicted)
+report
+
+#Try different values of k
+ks <- 1:10 ##Try k values from 1 to 10
+##Storing errors in an array
+store.Error <- rep(x=0, times = length(ks))
+
+for (i in seq_along(ks)) {
+    predicted = knn(train = train.Data,
+                    test = test.Data,
+                    cl = cls,
+                    k = ks[i])
+    store.Error[i] = check.Error(actual, predicted)
+}
+
+##Plot Error Vs K-values graph
+
+plot(store.Error, 
+     type='b', 
+     col = "blue", 
+     cex = 1, pch = 20,
+     xlab = "K - values",
+     ylab = "classification error",
+     main = "Error rate vs K-Values") 
